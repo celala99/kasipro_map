@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>観光マップ</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Shippori+Mincho&display=swap">
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAurLZCbmH21SW2KrIAsGX6CjeiTAKWHK4"></script>
+    <script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js"></script>
+    <style>
+        /* Shippori Mincho フォントのスタイル */
+        body, h2, p, button {
+            font-family: 'Shippori Mincho', serif;
+            font-weight: bold;
+            font-size: 24px;
+            color: #4d5262;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* マーカーの情報ウィンドウのスタイルをカスタマイズ */
+        .custom-info-window {
+            background-color: #0db2ff;
+            border: 4px solid #ff0000;
+            padding: 10px;
+            border-radius: 10px;
+            max-width: 200px;
+        }
+
+        /* カスタムマーカーのスタイル */
+        .custom-marker-label {
+            background-color: #ff5722;
+            color: #ffffff;
+            font-size: 14px;
+            padding: 5px;
+            border-radius: 50%;
+        }
+
+        /* 写真と情報を表示する要素のスタイル */
+        #photo-info {
+            background-color: rgba(0, 0, 0, 0.7);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        #photo {
+            max-width: 80%;
+            max-height: 70%;
+            margin-bottom: 20px;
+        }
+
+        #photo-info-text {
+            color: #fff;
+            text-align: center;
+        }
+
+        /* 季節別ボタンのスタイル */
+        #map-controls button {
+            background-color: #3ec2ff;
+            color: #ffffff;
+            font-weight: bold;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            margin-right: 10px;
+            cursor: pointer;
+            text-transform: lowercase;
+            font-size: 14px;
+        }
+
+        #map-controls button:hover {
+            background-color: #ff226c;
+        }
+
+        /* マップのスタイル */
+        #map {
+            width: 100%;
+            height: 780px;
+        }
+    </style>
+</head>
+<body>
+    <!-- マップコンテナ -->
+    <div id="map"></div>
+
+    <!-- 季節別ボタン -->
+    <div id="map-controls">
+        <!-- ここに季節別ボタンを追加 -->
+        <button id="show-all">すべて</button>
+        <button id="show-spring">春 spring</button>
+        <button id="show-summer">夏 summer</button>
+        <button id="show-autumn">秋 autom</button>
+        <button id="show-winter">冬 winter</button>
+    </div>
+
+    <!-- 写真と情報を表示する要素 -->
+    <div id="photo-info">
+        <img id="photo" src="" alt="写真">
+        <div id="photo-info-text">
+            <h2 id="photo-title">写真のタイトル</h2>
+            <p id="photo-description">写真の説明</p>
+        </div>
+        <button id="close-photo">閉じる</button>
+    </div>
+
+    <script>
+        let customMarker;
+        let map;
+        const markers = [];
+
+        function initMap() {
+         
+                
+const map = new google.maps.Map(document.getElementById('map'), {
+    mapId: "39d03b6e2c12d6e6",        
+    center: { lat: 34.73871, lng: 137.59298 },
+            zoom: 12.3
+            });
+
+
+            const locations = [
+    { title: "アサリ、とうこ", lat: 34.684999, lng: 137.598998, icon: "icon3.png", photoUrl: "1.JPG" },
+    { title: "ぷらゴミ、やどかり", lat: 34.690076, lng: 137.600551, icon: "icon3.png", photoUrl: "2.JPG" },
+    { title: "とうこ＆あかね海岸を眺める", lat: 34.715005, lng: 137.556874, icon: "icon3.png", photoUrl: "3.JPG" },
+    { title: "おじいがつり少年", lat: 34.715517, lng: 137.556626, icon: "icon3.png", photoUrl: "4.JPG" },
+    { title: "ちゃり、坂、（男二人、女二人）", lat: 34.766787, lng: 137.528518, icon: "icon3.png", photoUrl: "5.JPG" },
+    { title: "とうこ、アスファルト、座る", lat: 34.767168, lng: 137.549814, icon: "icon3.png", photoUrl: "6.JPG" },
+    { title: "とうこ、神社、海、眺め", lat: 34.771016, lng: 137.548462, icon: "icon3.png", photoUrl: "7.JPG" },
+    { title: "展望台道中、上から浜名湖", lat: 34.792471, lng: 137.610777, icon: "icon3.png", photoUrl: "8.JPG" },
+    { title: "寸座駅", lat: 34.79013, lng: 137.612441, icon: "icon3.png", photoUrl: "9.JPG" },
+    { title: "あかね、歩いている足", lat: 34.798355, lng: 137.6304, icon: "icon3.png", photoUrl: "10.JPG" },
+    { title: "坂から海", lat: 34.798915, lng: 137.623468, icon: "icon3.png", photoUrl: "11.JPG" },
+    { title: "学校さぼり男", lat: 34.798915, lng: 137.623468, icon: "icon3.png", photoUrl: "12.JPG" },
+    { title: "良い感じ、堤防", lat: 34.794384, lng: 137.643479, icon: "icon3.png", photoUrl: "13.JPG" },
+    { title: "男二人散歩、伊目", lat: 34.787545, lng: 137.639553, icon: "icon3.png", photoUrl: "14.JPG" },
+    { title: "男女チャリ/集合写真", lat: 34.713627, lng: 137.584052, icon: "icon3.png", photoUrl: "15.JPG" },
+    { title: "高架下（ここ道路だからね！）", lat: 34.727091, lng: 137.627818, icon: "icon3.png", photoUrl: "16.JPG" },
+    { title: "JAとぴあ", lat: 34.730714, lng: 137.633955, icon: "icon3.png", photoUrl: "17.JPG" },
+    { title: "砂浜、おじいと犬", lat: 34.74825, lng: 137.597368, icon: "icon3.png", photoUrl: "18.JPG" },
+    { title: "るあ着水", lat: 34.73578, lng: 137.590538, icon: "icon3.png", photoUrl: "19.JPG" },
+    { title: "堤防、向かい家", lat: 34.739419, lng: 137.635416, icon: "icon3.png", photoUrl: "20.JPG" },
+    { title: "田んぼ、海、堤防", lat: 34.739419, lng: 137.635416, icon: "icon3.png", photoUrl: "21.JPG" },
+    { title: "男女、津波看板、防災", lat: 34.754443, lng: 137.637512, icon: "icon3.png", photoUrl: "22.JPG" },
+    { title: "男女、向こう見てる（るあ撮影）", lat: 34.754166, lng: 137.63767, icon: "icon3.png", photoUrl: "23.JPG" },
+    { title: "石投げ/男女、正面、歩く", lat: 34.754345, lng: 137.638774, icon: "icon3.png", photoUrl: "24.JPG" },
+    { title: "有料道路（何の写真？）", lat: 34.72978, lng: 137.625388, icon: "icon3.png", photoUrl: "25.JPG" },
+    { title: "るあ、防災", lat: 34.715879, lng: 137.556415, icon: "icon3.png", photoUrl: "26.JPG" },
+    { title: "るああかね神社デート", lat: 34.77066, lng: 137.54886, icon: "icon3.png", photoUrl: "27.JPG" },
+    { title: "るあ木海携帯", lat: 34.7666440, lng: 137.5558146, icon: "icon3.png", photoUrl: "28.JPG" },
+    { title: "ゆづき振り向き隙間海", lat: 34.6914208, lng: 137.5965531, icon: "icon3.png", photoUrl: "29.JPG" },
+    { title: "ななアンニュイ座ってる", lat: 34.6936172, lng: 137.5896255, icon: "icon3.png", photoUrl: "30.JPG" },
+    { title: "夏の味", lat: 34.6886062, lng: 137.6028874, icon: "icon3.png", photoUrl: "31.JPG" },
+    { title: "船から海", lat: 34.6873965, lng: 137.6021598, icon: "icon3.png", photoUrl: "32.JPG" },
+]
+        const markers = [];
+
+        locations.forEach(location => {
+            const pos = { lat: location.lat, lng: location.lng };
+            const marker = new google.maps.Marker({
+                position: pos,
+                map: map,
+                title: location.title,
+                icon: location.icon,
+                photoUrl: location.photoUrl
+            });
+
+            markers.push(marker);
+        });
+
+        const clusterOptions = {
+            imagePath: "https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m",
+            gridSize: 30,
+            zoomOnClick: false,
+            maxZoom: 27,
+        };
+
+        const markerClusterer = new MarkerClusterer(map, markers, clusterOptions);
+
+        // スタイルを取得
+        const styles = markerClusterer.getStyles();
+
+        // スタイルを変更
+        for (let i = 0; i < styles.length; i++) {
+            styles[i].textColor = "yellow";
+            styles[i].textSize = 25;
+     
+        }
+  
+
+
+
+
+
+for (const location of locations) {
+                const marker = new google.maps.Marker({
+                    position: { lat: location.lat, lng: location.lng },
+                    map: map,
+                    title: location.title,
+                    season: "夏",
+                    icon: location.icon,
+                });
+
+                const customInfoWindow = new google.maps.InfoWindow();
+
+                marker.addListener("mouseover", () => {
+                    marker.setAnimation(google.maps.Animation.BOUNCE);
+                    customInfoWindow.setContent(`<img src="${location.photoUrl}" alt="写真" style="max-width: 200px;">`);
+                    customInfoWindow.open(map, marker);
+                });
+
+                marker.addListener("mouseout", () => {
+                    marker.setAnimation(null);
+                    customInfoWindow.close();
+                });
+
+                // マーカーがクリックされたときの処理
+                marker.addListener("click", () => {
+                    const photoUrl = location.photoUrl; // マーカーに関連付けられた写真のURLを取得
+                    const photoTitle = location.title;
+                    const photoDescription = "写真の説明";
+
+                    document.getElementById("photo").src = photoUrl;
+                    document.getElementById("photo-title").textContent = photoTitle;
+                    document.getElementById("photo-description").textContent = photoDescription;
+                    document.getElementById("photo-info").style.display = "flex";
+                });
+
+                markers.push({ marker, location });
+            }
+
+google.maps.event.addListenerOnce(map, 'tilesloaded', () => {
+updateMarkerIcons();
+});
+
+document.getElementById("close-photo").addEventListener("click", () => {
+document.getElementById("photo-info").style.display = "none";
+});
+
+document.getElementById("show-all").addEventListener("click", () => {
+for (const markerInfo of markers) {
+markerInfo.marker.setMap(map);
+}
+updateMarkerIcons();
+});
+
+document.getElementById("show-spring").addEventListener("click", () => {
+for (const markerInfo of markers) {
+markerInfo.marker.setMap(null);
+}
+// 春のマーカーだけを表示するためのコードを追加
+// 例: タイトルに"spring"が含まれている場合に表示
+for (const markerInfo of markers) {
+if (markerInfo.location.title.includes("spring")) {
+markerInfo.marker.setMap(map);
+}
+}
+updateMarkerIcons();
+});
+
+document.getElementById("show-summer").addEventListener("click", () => {
+for (const markerInfo of markers) {
+markerInfo.marker.setMap(null);
+}
+// 夏のマーカーだけを表示するためのコードを追加
+// 例: タイトルに"summer"が含まれている場合に表示
+for (const markerInfo of markers) {
+if (markerInfo.location.title.includes("summer")) {
+markerInfo.marker.setMap(map);
+}
+}
+updateMarkerIcons();
+});
+
+document.getElementById("show-autumn").addEventListener("click", () => {
+for (const markerInfo of markers) {
+markerInfo.marker.setMap(null);
+}
+// 秋のマーカーだけを表示するためのコードを追加
+// 例: タイトルに"autom"が含まれている場合に表示
+for (const markerInfo of markers) {
+if (markerInfo.location.title.includes("autom")) {
+markerInfo.marker.setMap(map);
+}
+}
+updateMarkerIcons();
+});
+
+document.getElementById("show-winter").addEventListener("click", () => {
+for (const markerInfo of markers) {
+markerInfo.marker.setMap(null);
+}
+// 冬のマーカーだけを表示するためのコードを追加
+// 例: タイトルに"winter"が含まれている場合に表示
+for (const markerInfo of markers) {
+if (markerInfo.location.title.includes("winter")) {
+markerInfo.marker.setMap(map);
+}
+}
+updateMarkerIcons();
+});
+}
+// アイコンの重なりを監視する
+setInterval(onMarkerPositionChanged, 1000); // 1秒ごとに監視
+     // アイコンの重なりを監視して処理を行う関数
+     function onMarkerPositionChanged() {
+            const iconToCount = {}; // アイコンごとのカウンターマップ
+
+            for (let i = 0; i < markers.length; i++) {
+                for (let j = i + 1; j < markers.length; j++) {
+                    const markerA = markers[i];
+                    const markerB = markers[j];
+
+                    const positionA = markerA.getPosition();
+                    const positionB = markerB.getPosition();
+
+                    const distance = google.maps.geometry.spherical.computeDistanceBetween(positionA, positionB);
+
+                    if (distance < 20) {
+                        const iconA = markerA.getIcon();
+                        const iconB = markerB.getIcon();
+
+                        if (iconA === iconB && iconA === "icon3.png") {
+                            // "icon3.png" のアイコン同士の重なりを処理
+                            if (!iconToCount[iconA]) {
+                                iconToCount[iconA] = 0;
+                            }
+
+                            // アイコンが重なったらカウンターを増やす
+                            iconToCount[iconA] += 2;
+
+                            // 重なったアイコンを非表示にする
+                            markerA.setMap(null);
+                            markerB.setMap(null);
+                        }
+                    }
+                }
+            }
+
+            // アイコンごとにカウンターマーカーを表示
+            for (const icon in iconToCount) {
+                if (iconToCount.hasOwnProperty(icon)) {
+                    const count = iconToCount[icon];
+
+                    // カウンターマーカーを作成して表示
+                    const counterMarker = new google.maps.Marker({
+                        position: markers[0].getPosition(), // 最初のマーカーの座標を使用
+                        map: map,
+                        label: {
+                            text: count.toString(),
+                            color: '#ffffff',
+                        },
+                    });
+
+                    markers.push(counterMarker);
+                }
+            }
+        }
+
+
+       
+        
+
+
+
+
+
+
+
+        
+// アイコン同士の距離を監視してアクションを実行
+function onMarkerPositionChanged() {
+    const iconToCount = {}; // アイコンごとのカウンターマップ
+
+    for (let i = 0; i < markers.length; i++) {
+        for (let j = i + 1; j < markers.length; j++) {
+            const markerA = markers[i].marker;
+            const markerB = markers[j].marker;
+
+            const positionA = markerA.getPosition();
+            const positionB = markerB.getPosition();
+
+            const distance = google.maps.geometry.spherical.computeDistanceBetween(positionA, positionB);
+
+            if (distance < 20) {
+                const iconA = markerA.getIcon();
+                const iconB = markerB.getIcon();
+
+                if (iconA === iconB && iconA === "icon3.png") {
+                    // "icon3.png" のアイコン同士の重なりを処理
+                    if (!iconToCount[iconA]) {
+                        iconToCount[iconA] = 0;
+                    }
+
+                    // アイコンが重なったらカウンターを増やす
+                    iconToCount[iconA] += 2;
+
+                    // 重なったアイコンを非表示にする
+                    markerA.setMap(null);
+                    markerB.setMap(null);
+                }
+            }
+        }
+    }
+
+    // アイコンごとにカウンターマーカーを表示
+    for (const icon in iconToCount) {
+        if (iconToCount.hasOwnProperty(icon)) {
+            const count = iconToCount[icon];
+
+            // カウンターマーカーを作成して表示
+            const counterMarker = new google.maps.Marker({
+                position: markerA.getPosition(), // 最初のマーカーの座標を使用
+                map: map,
+                label: {
+                    text: count.toString(),
+                    color: '#ffffff',
+                },
+            });
+
+            markers.push({ marker: counterMarker });
+        }
+    }
+}
+
+window.initMap = initMap;
+</script>
+
+    <!-- Google Maps API スクリプト -->
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAurLZCbmH21SW2KrIAsGX6CjeiTAKWHK4&callback=initMap"></script>
+</body>
+</html>
