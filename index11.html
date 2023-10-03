@@ -231,6 +231,13 @@ for (const location of locations) {
                     document.getElementById("photo-title").textContent = photoTitle;
                     document.getElementById("photo-description").textContent = photoDescription;
                     document.getElementById("photo-info").style.display = "flex";
+ // クリックイベントを発生させる（タッチデバイス対応）
+ const clickEvent = new MouseEvent("click", {
+        bubbles: true,
+        cancelable: true,
+        view: window
+    });
+    marker.dispatchEvent(clickEvent);                    
                 });
 
                 markers.push({ marker, location });
