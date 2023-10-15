@@ -37,7 +37,7 @@ main {
     align-items: center;
     min-height: 100vh;
     text-align: center;
-    margin-top: -80px; /* 上方向に20px分移動 */
+    margin-top: -60px; /* 上方向に20px分移動 */
 }
 
 #map-container iframe {
